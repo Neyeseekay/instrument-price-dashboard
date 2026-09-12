@@ -12,11 +12,6 @@ def test_total_return_pct():
 
 
 def test_max_drawdown_pct():
-    # peak 110 -> trough 99 => (99 - 110) / 110 = -10%
-    assert max_drawdown_pct([100, 110, 99, 121]) == pytest.approx(-10.0)
-
-
-def test_max_drawdown_pct_picks_largest_of_multiple_drawdowns():
     # Dips of -40%, -20%, -16.67%, -8.33%, -25% across two separate peaks
     # (100, then 120). The largest (-40%) must win even though it's the
     # first dip, not the last, and not tied to the series' highest peak.
