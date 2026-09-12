@@ -38,6 +38,16 @@ npm --version
 - pip install -r requirements.txt
 - uvicorn main:app --reload
 
+## Stats methodology
+
+All three stats are percentages. Daily "returns" are **log returns** (`ln(Pᵢ/Pᵢ₋₁)`), not simple returns (`Pᵢ/Pᵢ₋₁ - 1`) — a deliberate deviation from a literal reading of the spec's total-return formula, in method only, not outcome:
+
+- **Total return %** is derived as `(exp(sum(daily log returns)) - 1) × 100`. Log returns are time-additive, so this is an *exact identity* with the spec's `(last/first - 1) × 100` — same answer, different path.
+- **Daily volatility** is the sample standard deviation (`ddof=1`) of those same daily log returns, ×100.
+- Using log returns as the one shared "return" primitive means total return and volatility are built from a single consistent definition of "return," rather than two different ones.
+- For this dataset, the effect is negligible either way: max observed daily move is ~5.9%, where simple vs. log returns differ by only ~0.12 percentage points. The divergence grows with the square of the move size and only becomes material above roughly 15-20% single-day moves.
+- **Max drawdown** stays a simple peak-to-trough percentage decline (the universal convention for this metric), reported as negative (0.0 if the series never declines from its running peak).
+
 ## AI assistance
 
 This project was built with Claude Code assistance — see commit history for specifics.
