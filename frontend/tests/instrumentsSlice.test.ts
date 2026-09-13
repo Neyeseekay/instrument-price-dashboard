@@ -1,10 +1,30 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import instrumentsReducer, {
   setSelectedTickers,
 } from "../src/features/instruments/instrumentsSlice";
 
 describe("instrumentsSlice", () => {
+  afterEach(() => {
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("seeds the initial selection (and colors) from the ?tickers= URL param", async () => {
+    window.history.replaceState(null, "", "/?tickers=AAPL,MSFT");
+    vi.resetModules();
+
+    const { default: freshReducer } = await import(
+      "../src/features/instruments/instrumentsSlice"
+    );
+    const state = freshReducer(undefined, { type: "@@INIT" });
+
+    expect(state.selectedTickers).toEqual(["AAPL", "MSFT"]);
+    expect(state.tickerColorVars).toEqual({
+      AAPL: "--color-series-1",
+      MSFT: "--color-series-2",
+    });
+  });
+
   it("has an empty selectedTickers array and no color assignments initially", () => {
     const state = instrumentsReducer(undefined, { type: "@@INIT" });
     expect(state.selectedTickers).toEqual([]);

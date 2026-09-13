@@ -1,4 +1,5 @@
 import { useAppSelector } from './app/hooks'
+import { useUrlTickerSync } from './app/useUrlTickerSync'
 import { EmptyState } from './components/EmptyState'
 import { Header } from './components/Header'
 import { PriceChart } from './components/PriceChart'
@@ -8,6 +9,7 @@ import { TickerSearch } from './components/TickerSearch'
 
 function App() {
   const selectedTickers = useAppSelector((state) => state.instruments.selectedTickers)
+  useUrlTickerSync()
 
   return (
     <SplashScreen>

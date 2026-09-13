@@ -1,6 +1,10 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { useListInstruments } from "../api/generated/endpoints";
-import { SERIES_COLOR_VARS, setSelectedTickers } from "../features/instruments/instrumentsSlice";
+import {
+  MAX_SELECTED_TICKERS,
+  SERIES_COLOR_VARS,
+  setSelectedTickers,
+} from "../features/instruments/instrumentsSlice";
 import { cssColor } from "../lib/cssColor";
 import { Combobox } from "./ui/Combobox";
 
@@ -29,7 +33,7 @@ export function TickerSearch() {
         value={selectedTickers}
         onChange={(next) => dispatch(setSelectedTickers(next))}
         multiple
-        max={3}
+        max={MAX_SELECTED_TICKERS}
         placeholder={isLoading ? "Loading tickers..." : "Search tickers..."}
         disabled={isLoading || isError}
       />
