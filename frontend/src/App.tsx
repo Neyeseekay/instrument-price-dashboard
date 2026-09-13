@@ -12,11 +12,13 @@ function App() {
   return (
     <SplashScreen>
       <Header />
-      <div className="mx-auto max-w-2xl p-4">
+      <div className="mx-auto max-w-5xl p-4">
         <h1 className="mb-4 bg-gradient-to-b from-brand-light to-brand bg-clip-text text-2xl font-semibold text-transparent">
           Price Dashboard
         </h1>
-        <TickerSearch />
+        <div className="max-w-md">
+          <TickerSearch />
+        </div>
         <div className="mt-6">
           {selectedTickers.length === 0 ? (
             <EmptyState />
