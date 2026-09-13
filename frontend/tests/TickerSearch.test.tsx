@@ -7,7 +7,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import * as generatedApi from "../src/api/generated/endpoints";
 import { TickerSearch } from "../src/components/TickerSearch";
-import instrumentsReducer from "../src/features/instruments/instrumentsSlice";
+import instrumentsReducer, {
+  setSelectedTickers,
+} from "../src/features/instruments/instrumentsSlice";
 
 type UseListInstrumentsResult = ReturnType<typeof generatedApi.useListInstruments>;
 
@@ -25,10 +27,8 @@ function mockUseListInstruments(overrides: Partial<UseListInstrumentsResult> = {
 }
 
 function renderWithProviders(preloadedTickers: string[] = []) {
-  const store = configureStore({
-    reducer: { instruments: instrumentsReducer },
-    preloadedState: { instruments: { selectedTickers: preloadedTickers } },
-  });
+  const store = configureStore({ reducer: { instruments: instrumentsReducer } });
+  store.dispatch(setSelectedTickers(preloadedTickers));
   const queryClient = new QueryClient();
   const utils = render(
     <Provider store={store}>
