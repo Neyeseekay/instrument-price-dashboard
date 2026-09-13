@@ -2,6 +2,8 @@
 
 @theme {
   --color-brand: #013e88;
+  --color-brand-light: #2f6db3;
+  --color-sky: #eaf2fb;
   --color-page: #f9f9f7;
   --color-surface: #ffffff;
   --color-ink: #0b0b0b;
@@ -17,11 +19,7 @@
 
 body {
   min-height: 100vh;
-  /* A barely-tinted brand wash at the top, settling into the plain page
-     tone -- adds depth without abandoning the light/minimal look. */
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-brand) 4%, var(--color-page)) 0%,
-    var(--color-page) 480px
-  );
+  /* A soft blue wash at the top, settling into the plain page tone --
+     adds depth without abandoning the light/minimal look. */
+  background: linear-gradient(180deg, var(--color-sky) 0%, var(--color-page) 480px);
 }
