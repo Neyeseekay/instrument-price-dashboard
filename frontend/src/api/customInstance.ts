@@ -1,0 +1,14 @@
+import type { AxiosError, AxiosRequestConfig } from "axios";
+import Axios from "axios";
+
+export const AXIOS_INSTANCE = Axios.create({ baseURL: "http://localhost:8000" });
+
+export const customInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
+  const promise = AXIOS_INSTANCE({ ...config }).then(({ data }) => data);
+
+  return promise;
+};
+
+export default customInstance;
+
+export interface ErrorType<Error> extends AxiosError<Error> {}

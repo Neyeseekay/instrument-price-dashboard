@@ -25,12 +25,12 @@ def _get_series_or_404(ticker: str, store: PriceStore):
     return series
 
 
-@router.get("/instruments", response_model=list[str])
+@router.get("/instruments", response_model=list[str], operation_id="listInstruments")
 def list_instruments(store: PriceStore = Depends(get_price_store)) -> list[str]:
     return store.tickers()
 
 
-@router.get("/prices/{ticker}", response_model=PriceSeriesOut)
+@router.get("/prices/{ticker}", response_model=PriceSeriesOut, operation_id="getPrices")
 def get_prices(ticker: str, store: PriceStore = Depends(get_price_store)) -> PriceSeriesOut:
     series = _get_series_or_404(ticker, store)
     return PriceSeriesOut(
@@ -39,7 +39,7 @@ def get_prices(ticker: str, store: PriceStore = Depends(get_price_store)) -> Pri
     )
 
 
-@router.get("/prices/{ticker}/stats", response_model=StatsOut)
+@router.get("/prices/{ticker}/stats", response_model=StatsOut, operation_id="getStats")
 def get_stats(ticker: str, store: PriceStore = Depends(get_price_store)) -> StatsOut:
     series = _get_series_or_404(ticker, store)
     prices = [p.price for p in series]

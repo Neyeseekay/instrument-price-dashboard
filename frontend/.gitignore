@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Regenerated on demand by `npm run generate-api`; the generated
+# src/api/generated/ output IS committed, this intermediate schema isn't.
+openapi.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -15,6 +15,6 @@ app.add_middleware(
 app.include_router(prices.router)
 
 
-@app.get("/health")
+@app.get("/health", operation_id="health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
