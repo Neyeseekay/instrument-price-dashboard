@@ -116,3 +116,15 @@ All three stats are percentages. Daily "returns" are **log returns** (`ln(Pᵢ/P
 ## AI assistance
 
 This project was built with Claude Code assistance — see commit history for specifics.
+
+## Beyond the spec
+
+The take-home asked for a backend, a frontend, and the ability to run locally. A few things here go past that bar:
+
+- **Type-safe, drift-checked API contract.** The backend exports its OpenAPI schema (`app/export_openapi.py`); [orval](frontend/orval.config.ts) generates the frontend's typed client and React Query hooks from it (`frontend/src/api/generated`). A dedicated CI job regenerates the client on every push and fails the build if it doesn't match what's committed — the frontend can't silently drift from what the backend actually serves.
+- **CI pipeline.** `.github/workflows/ci.yml` runs lint, test, and build for both services independently, plus the contract-drift check above — not just "it runs on my machine."
+- **Docker for both services, plus Compose.** `backend/Dockerfile`, `frontend/Dockerfile` (built and served via nginx), and `docker-compose.yml` bring the whole stack up with one command.
+- **Backend-independent dev mode.** [Mock Service Worker](https://mswjs.io/) (`frontend/src/mocks`) lets the full UI run against realistic fake data with no backend running at all (`npm run dev:mock`) — useful for frontend-only work or demoing offline.
+- **A real test suite.** 9 frontend test files and 2 backend test files (~825 lines total) covering the search/multi-select component, chart, stats panel, Redux slice, and generated API client — not just a happy-path smoke test.
+- **Data-quality guard at ingestion.** The CSV loader (`backend/app/data/loader.py`) validates that every ticker's dates are actually daily/business-day cadence and fails loudly if not, rather than silently computing "daily" volatility on weekly or monthly data.
+- **Documented stats methodology.** The section above doesn't just state the formulas used — it explains the log-return choice, proves it's mathematically identical to the spec's total-return formula, and quantifies how much it would diverge from simple returns on this dataset.
