@@ -9,6 +9,11 @@ from typing import NamedTuple
 
 import pandas as pd
 
+# Covers weekends/holidays (a Friday -> Monday gap is 3 days) while
+# rejecting weekly/monthly cadence data, which would otherwise silently
+# get labeled "daily" in the stats without anyone noticing.
+MAX_GAP_DAYS = 4
+
 
 class PricePoint(NamedTuple):
     date: date
@@ -32,10 +37,25 @@ class PriceStore:
         ]
 
 
+def _validate_daily_cadence(df: pd.DataFrame) -> None:
+    """Fail loudly if any ticker's dates aren't daily (or business-day)
+    cadence, rather than silently computing stats mislabeled "daily"."""
+    gap_days = df.groupby(level=0)["date"].diff().dt.days
+    violations = gap_days[gap_days > MAX_GAP_DAYS]
+    if not violations.empty:
+        ticker = violations.index[0]
+        raise ValueError(
+            f"Expected daily (or business-day) price data; found a "
+            f"{violations.iloc[0]:.0f}-day gap for ticker {ticker}. This app "
+            f"assumes consecutive dates are never more than {MAX_GAP_DAYS} days apart."
+        )
+
+
 def load_price_store(csv_path: Path) -> PriceStore:
     if not csv_path.exists():
         raise FileNotFoundError(f"Price data CSV not found at {csv_path}")
 
     df = pd.read_csv(csv_path, parse_dates=["date"])
     df = df.sort_values(["ticker", "date"]).set_index("ticker")
+    _validate_daily_cadence(df)
     return PriceStore(df)
