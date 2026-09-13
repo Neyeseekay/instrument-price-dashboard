@@ -1,10 +1,12 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { useListInstruments } from "../api/generated/endpoints";
-import { setSelectedTickers } from "../features/instruments/instrumentsSlice";
+import { SERIES_COLOR_VARS, setSelectedTickers } from "../features/instruments/instrumentsSlice";
+import { cssColor } from "../lib/cssColor";
 import { Combobox } from "./ui/Combobox";
 
 export function TickerSearch() {
   const selectedTickers = useAppSelector((state) => state.instruments.selectedTickers);
+  const tickerColorVars = useAppSelector((state) => state.instruments.tickerColorVars);
   const dispatch = useAppDispatch();
   const { data: tickers, isLoading, isError } = useListInstruments();
 
@@ -34,22 +36,28 @@ export function TickerSearch() {
 
       {selectedTickers.length > 0 && (
         <ul className="mt-2 flex flex-wrap gap-2">
-          {selectedTickers.map((ticker) => (
-            <li
-              key={ticker}
-              className="flex items-center gap-1 rounded-full border border-hairline bg-page px-3 py-1 text-sm text-ink"
-            >
-              {ticker}
-              <button
-                type="button"
-                onClick={() => handleRemove(ticker)}
-                aria-label={`Remove ${ticker}`}
-                className="text-ink-muted hover:text-critical"
+          {selectedTickers.map((ticker) => {
+            const accentColor = cssColor(tickerColorVars[ticker] ?? SERIES_COLOR_VARS[0]);
+            return (
+              <li
+                key={ticker}
+                className="flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1 text-sm shadow-sm"
+                style={{ borderColor: accentColor }}
               >
-                ×
-              </button>
-            </li>
-          ))}
+                <span className="font-medium" style={{ color: accentColor }}>
+                  {ticker}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(ticker)}
+                  aria-label={`Remove ${ticker}`}
+                  className="text-ink-muted hover:text-critical"
+                >
+                  ×
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
