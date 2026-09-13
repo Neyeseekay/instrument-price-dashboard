@@ -15,7 +15,9 @@ Install these before running the project:
 | Docker Desktop (optional) | 29.7.2 | `docker --version` |
 | Git | any recent version | `git --version` |
 
-Docker is only needed if you want to run the backend in a container; the local Python setup below works without it.
+Docker is only needed if you want to run either service in a container; the local setups below work without it.
+
+## Running the backend
 
 ### Locally (Python)
 
@@ -43,6 +45,54 @@ Same endpoints as above, still at `http://localhost:8000` (mapped out of the con
 
 ```bash
 docker stop ipd-backend
+```
+
+### Tests
+
+```bash
+cd backend
+pytest        # tests
+ruff check .  # lint
+```
+
+## Running the frontend
+
+### Locally (Vite dev server)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`. Expects the backend running at `http://localhost:8000` (see above).
+
+### With mock data (no backend needed)
+
+```bash
+cd frontend
+npm install
+npm run dev:mock
+```
+
+Runs the full UI against fake data via [Mock Service Worker](https://mswjs.io/) — useful for frontend-only work, or demoing without the backend running at all.
+
+### With Docker
+
+```bash
+cd frontend
+docker build -t instrument-price-dashboard-frontend .
+docker run -d --rm -p 5173:80 --name ipd-frontend instrument-price-dashboard-frontend
+```
+
+Serves the production build via nginx at `http://localhost:5173`. Stop it with `docker stop ipd-frontend`.
+
+### Tests
+
+```bash
+cd frontend
+npm run test  # tests
+npm run lint  # lint
 ```
 
 ## Running both services together (Docker Compose)
