@@ -1,15 +1,12 @@
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { useListInstruments } from "../api/generated/endpoints";
 import { setSelectedTickers } from "../features/instruments/instrumentsSlice";
 import { Combobox } from "./ui/Combobox";
-
-// TEMPORARY mock data -- replace with the generated useGetInstrumentsQuery()
-// hook once the Orval pipeline is wired up. Matches the real TICK#### naming
-// so nothing about this component changes shape when that swap happens.
-const MOCK_TICKERS = Array.from({ length: 20 }, (_, i) => `TICK${String(i + 1).padStart(4, "0")}`);
 
 export function TickerSearch() {
   const selectedTickers = useAppSelector((state) => state.instruments.selectedTickers);
   const dispatch = useAppDispatch();
+  const { data: tickers, isLoading, isError } = useListInstruments();
 
   function handleRemove(ticker: string) {
     dispatch(setSelectedTickers(selectedTickers.filter((t) => t !== ticker)));
@@ -17,15 +14,22 @@ export function TickerSearch() {
 
   return (
     <div className="w-full">
+      {isError && (
+        <p className="mb-2 text-sm text-critical">
+          Couldn&apos;t load tickers. Check that the API is running and try again.
+        </p>
+      )}
+
       <Combobox<string>
-        options={MOCK_TICKERS}
+        options={tickers ?? []}
         getLabel={(ticker) => ticker}
         getValue={(ticker) => ticker}
         value={selectedTickers}
         onChange={(next) => dispatch(setSelectedTickers(next))}
         multiple
         max={3}
-        placeholder="Search tickers..."
+        placeholder={isLoading ? "Loading tickers..." : "Search tickers..."}
+        disabled={isLoading || isError}
       />
 
       {selectedTickers.length > 0 && (
