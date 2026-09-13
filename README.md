@@ -1,7 +1,7 @@
 # instrument-price-dashboard
 A full-stack dashboard for browsing synthetic daily closing prices across 200 instruments, with computed return, volatility, and drawdown stats.
 
-**Stack:** Python (FastAPI) backend, React + TypeScript (Redux Toolkit, Tailwind CSS, Chart.js) frontend.
+**Stack:** Python (FastAPI) backend, React + TypeScript (Redux Toolkit, Tailwind CSS, Highcharts) frontend.
 
 ## Prerequisites
 
@@ -44,6 +44,14 @@ Same endpoints as above, still at `http://localhost:8000` (mapped out of the con
 ```bash
 docker stop ipd-backend
 ```
+
+## Running both services together (Docker Compose)
+
+```bash
+docker compose up --build
+```
+
+Backend at `http://localhost:8000`, frontend at `http://localhost:5173` (the frontend is built and served via nginx, not the Vite dev server, in this mode). Stop with `docker compose down`.
 
 ## Stats methodology
 
