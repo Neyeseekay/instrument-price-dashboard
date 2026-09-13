@@ -15,7 +15,7 @@ function formatPct(value: number): string {
 
 function StatColumn({ label, value, colorClass }: { label: string; value: string; colorClass?: string }) {
   return (
-    <div className="flex flex-col items-start gap-0.5">
+    <div className="flex w-24 shrink-0 flex-col items-start gap-0.5">
       <span className="text-xs tracking-wide text-ink-muted uppercase">{label}</span>
       <span className={`font-medium ${colorClass ?? "text-ink"}`}>{value}</span>
     </div>
