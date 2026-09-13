@@ -1,4 +1,5 @@
 import { PriceChart } from './components/PriceChart'
+import { StatsPanel } from './components/StatsPanel'
 import { TickerSearch } from './components/TickerSearch'
 import './App.css'
 
@@ -8,6 +9,9 @@ function App() {
       <TickerSearch />
       <div className="mt-6">
         <PriceChart />
+      </div>
+      <div className="mt-6">
+        <StatsPanel />
       </div>
     </div>
   )
