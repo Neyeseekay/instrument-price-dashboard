@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { QueryClient, QueryClientProvider, useQueries } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen } from "@testing-library/react";
+import { delay, http, HttpResponse } from "msw";
 import { Provider } from "react-redux";
 import { describe, expect, it, vi } from "vitest";
 
@@ -8,6 +9,7 @@ import { PriceChart } from "../src/components/PriceChart";
 import instrumentsReducer, {
   setSelectedTickers,
 } from "../src/features/instruments/instrumentsSlice";
+import { server } from "../src/mocks/server";
 
 // jsdom doesn't run our actual Tailwind/PostCSS pipeline, so getComputedStyle
 // can't return real hex values here -- mock cssColor to just echo the
@@ -16,11 +18,6 @@ import instrumentsReducer, {
 vi.mock("../src/lib/cssColor", () => ({
   cssColor: (variable: string) => variable,
 }));
-
-vi.mock("@tanstack/react-query", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@tanstack/react-query")>();
-  return { ...actual, useQueries: vi.fn() };
-});
 
 // Highcharts renders to SVG via imperative DOM manipulation jsdom can't
 // really do -- stub both components and capture the props they were given,
@@ -39,18 +36,23 @@ vi.mock("@highcharts/react/series/Line", () => ({
   ),
 }));
 
-function fakeQueryResult(dates: string[], prices: number[]) {
-  return {
-    data: { series: dates.map((date, i) => ({ date, price: prices[i] })) },
-    isLoading: false,
-    isError: false,
-  };
+const PRICES_URL = "http://localhost:8000/api/prices/:ticker";
+
+function mockPrices(seriesByTicker: Record<string, { date: string; price: number }[]>) {
+  server.use(
+    http.get(PRICES_URL, ({ params }) => {
+      const ticker = String(params.ticker).toUpperCase();
+      const series = seriesByTicker[ticker];
+      if (!series) return HttpResponse.json({ detail: "not found" }, { status: 404 });
+      return HttpResponse.json({ ticker, series });
+    }),
+  );
 }
 
 function renderWithStore(selectedTickers: string[]) {
   const store = configureStore({ reducer: { instruments: instrumentsReducer } });
   store.dispatch(setSelectedTickers(selectedTickers));
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const utils = render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
@@ -71,34 +73,37 @@ function getAllSeries() {
 
 describe("PriceChart", () => {
   it("renders nothing when no tickers are selected", () => {
-    vi.mocked(useQueries).mockReturnValue([]);
     const { container } = renderWithStore([]);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("shows a loading message while any query is loading", () => {
-    vi.mocked(useQueries).mockReturnValue([
-      { data: undefined, isLoading: true, isError: false },
-    ]);
+    server.use(
+      http.get(PRICES_URL, async () => {
+        await delay("infinite");
+      }),
+    );
     renderWithStore(["TICK0001"]);
     expect(screen.getByText(/loading chart/i)).toBeInTheDocument();
   });
 
-  it("shows an error message if any query fails", () => {
-    vi.mocked(useQueries).mockReturnValue([
-      { data: undefined, isLoading: false, isError: true },
-    ]);
+  it("shows an error message if any query fails", async () => {
+    server.use(http.get(PRICES_URL, () => HttpResponse.json({ detail: "error" }, { status: 500 })));
     renderWithStore(["TICK0001"]);
-    expect(screen.getByText(/couldn't load price data/i)).toBeInTheDocument();
+    expect(await screen.findByText(/couldn't load price data/i)).toBeInTheDocument();
   });
 
-  it("renders one series per selected ticker with matching name and [timestamp, price] data", () => {
-    vi.mocked(useQueries).mockReturnValue([
-      fakeQueryResult(["2026-01-01", "2026-01-02"], [100, 110]),
-      fakeQueryResult(["2026-01-01", "2026-01-02"], [50, 45]),
-    ]);
+  it("renders one series per selected ticker with matching name and [timestamp, price] data", async () => {
+    mockPrices({
+      TICK0001: [
+        { date: "2026-01-01", price: 100 },
+        { date: "2026-01-02", price: 110 },
+      ],
+      TICK0002: [{ date: "2026-01-01", price: 50 }],
+    });
     renderWithStore(["TICK0001", "TICK0002"]);
 
+    await screen.findByTestId("stock-chart");
     const series = getAllSeries();
     expect(series).toHaveLength(2);
     expect(series[0]).toMatchObject({
@@ -111,37 +116,31 @@ describe("PriceChart", () => {
     expect(series[1]).toMatchObject({ name: "TICK0002", data: expect.any(Array) });
   });
 
-  it("hides the legend for a single ticker", () => {
-    vi.mocked(useQueries).mockReturnValue([fakeQueryResult(["2026-01-01"], [100])]);
+  it("hides the legend for a single ticker", async () => {
     renderWithStore(["TICK0001"]);
+    await screen.findByTestId("stock-chart");
     expect(getChartOptions().legend.enabled).toBe(false);
   });
 
-  it("shows the legend for multiple tickers", () => {
-    vi.mocked(useQueries).mockReturnValue([
-      fakeQueryResult(["2026-01-01"], [100]),
-      fakeQueryResult(["2026-01-01"], [50]),
-    ]);
+  it("shows the legend for multiple tickers", async () => {
     renderWithStore(["TICK0001", "TICK0002"]);
+    await screen.findByTestId("stock-chart");
     expect(getChartOptions().legend.enabled).toBe(true);
   });
 
-  it("keeps a ticker's color stable when another ticker is removed around it", () => {
-    vi.mocked(useQueries).mockReturnValue([
-      fakeQueryResult(["2026-01-01"], [100]),
-      fakeQueryResult(["2026-01-01"], [50]),
-    ]);
+  it("keeps a ticker's color stable when another ticker is removed around it", async () => {
     const { store } = renderWithStore(["TICK0001", "TICK0002"]);
+    await screen.findByTestId("stock-chart");
 
     const tick2ColorBefore = getAllSeries().find((s) => s.name === "TICK0002")!.color;
 
     // Remove TICK0001; TICK0002 must keep its own color, not inherit
     // TICK0001's now-freed slot.
-    vi.mocked(useQueries).mockReturnValue([fakeQueryResult(["2026-01-01"], [50])]);
     act(() => {
       store.dispatch(setSelectedTickers(["TICK0002"]));
     });
 
+    await screen.findByTestId("stock-chart");
     const after = getAllSeries();
     expect(after).toHaveLength(1);
     expect(after[0].name).toBe("TICK0002");
