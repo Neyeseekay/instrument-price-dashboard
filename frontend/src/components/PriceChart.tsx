@@ -35,6 +35,8 @@ export function PriceChart() {
     <Chart
       options={{
         chart: { backgroundColor: cssColor("--color-surface") },
+        title: { text: undefined },
+        credits: { enabled: false },
         tooltip: { shared: true, crosshairs: true },
         xAxis: {
           type: "datetime",
