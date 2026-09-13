@@ -12,31 +12,38 @@ Install these before running the project:
 | Python | 3.12.10 | `python --version` |
 | Node.js (LTS) | v24.19.0 | `node --version` |
 | npm | 11.17.0 | `npm --version` |
+| Docker Desktop (optional) | 29.7.2 | `docker --version` |
 | Git | any recent version | `git --version` |
 
-### Installing Node.js on Windows
+Docker is only needed if you want to run the backend in a container; the local Python setup below works without it.
 
-If `node --version` doesn't resolve, install Node LTS via `winget`:
+### Locally (Python)
 
-```powershell
-winget install -e --id OpenJS.NodeJS.LTS
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate    # source venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
 
-If prompted to accept the source agreement, type `Y` and press Enter. **Close and reopen your terminal** afterward so `PATH` picks up the new install, then verify:
+Place the source data at `backend/app/data/market_data.csv` (columns: `date, ticker, price`) before starting — the server won't start without it.
 
-```powershell
-node --version
-npm --version
+Once running: `http://localhost:8000/docs` for interactive API docs (try each endpoint from the browser), `http://localhost:8000/health` for a liveness check.
+
+### With Docker
+
+```bash
+cd backend
+docker build -t instrument-price-dashboard-backend .
+docker run -d --rm -p 8000:8000 --name ipd-backend instrument-price-dashboard-backend
 ```
 
-(On macOS/Linux, use your usual package manager — e.g. `brew install node`, or an installer from [nodejs.org](https://nodejs.org).)
+Same endpoints as above, still at `http://localhost:8000` (mapped out of the container). Stop it with:
 
-## Environment Setup
-
-- python -m venv venv
-- source venv/bin/activate  # or venv\Scripts\activate on Windows
-- pip install -r requirements.txt
-- uvicorn main:app --reload
+```bash
+docker stop ipd-backend
+```
 
 ## Stats methodology
 
