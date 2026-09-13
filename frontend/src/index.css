@@ -14,3 +14,14 @@
   --color-good: #006300;
   --color-critical: #d03b3b;
 }
+
+body {
+  min-height: 100vh;
+  /* A barely-tinted brand wash at the top, settling into the plain page
+     tone -- adds depth without abandoning the light/minimal look. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-brand) 4%, var(--color-page)) 0%,
+    var(--color-page) 480px
+  );
+}

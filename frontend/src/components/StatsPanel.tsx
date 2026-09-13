@@ -4,6 +4,9 @@ import { getGetPricesQueryOptions, getGetStatsQueryOptions } from "../api/genera
 import { useAppSelector } from "../app/hooks";
 import { SERIES_COLOR_VARS } from "../features/instruments/instrumentsSlice";
 import { cssColor } from "../lib/cssColor";
+import { Spinner } from "./ui/Spinner";
+
+const CARD_CLASS = "rounded-lg border border-hairline bg-surface p-4 shadow-sm";
 
 function formatPct(value: number): string {
   const sign = value > 0 ? "+" : "";
@@ -38,14 +41,23 @@ export function StatsPanel() {
 
   if (statsQueries.some((q) => q.isError) || priceQueries.some((q) => q.isError)) {
     return (
-      <p className="text-sm text-critical">
-        Couldn&apos;t load stats. Check that the API is running and try again.
-      </p>
+      <div className={CARD_CLASS}>
+        <p className="text-sm text-critical">
+          Couldn&apos;t load stats. Check that the API is running and try again.
+        </p>
+      </div>
     );
   }
 
   if (statsQueries.some((q) => q.isLoading) || priceQueries.some((q) => q.isLoading)) {
-    return <p className="text-sm text-ink-muted">Loading stats...</p>;
+    return (
+      <div className={CARD_CLASS}>
+        <div className="flex items-center gap-2 text-sm text-ink-muted">
+          <Spinner />
+          Loading stats...
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -68,7 +80,7 @@ export function StatsPanel() {
         return (
           <li
             key={ticker}
-            className="flex gap-4 overflow-hidden rounded-md border border-hairline bg-surface"
+            className="flex gap-4 overflow-hidden rounded-lg border border-hairline bg-surface shadow-sm"
           >
             <span className="w-1 shrink-0" style={{ backgroundColor: accentColor }} aria-hidden="true" />
             <div className="flex flex-1 items-center gap-4 py-3 pr-4">
