@@ -119,7 +119,7 @@ This project was built with Claude Code assistance — see commit history for sp
 
 ## Beyond the spec
 
-The take-home asked for a backend, a frontend, and the ability to run locally. A few things here go past that bar:
+The spec asked for a backend, a frontend, and the ability to run locally. A few things here go past that bar:
 
 - **Type-safe, drift-checked API contract.** The backend exports its OpenAPI schema (`app/export_openapi.py`); [orval](frontend/orval.config.ts) generates the frontend's typed client and React Query hooks from it (`frontend/src/api/generated`). A dedicated CI job regenerates the client on every push and fails the build if it doesn't match what's committed — the frontend can't silently drift from what the backend actually serves.
 - **CI pipeline.** `.github/workflows/ci.yml` runs lint, test, and build for both services independently, plus the contract-drift check above — not just "it runs on my machine."
